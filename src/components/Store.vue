@@ -7,7 +7,7 @@
     </div>
     <div class="content">
       <ul>
-        <li v-for="product in products">
+        <li v-for="(product, index) in products" :key="product.id">
           <img
             class="image-product mx-4"
             :src="getImgUrl(product.image)"
@@ -26,6 +26,7 @@
           <p>
             <b>Price:</b>
             {{ product.price }}
+            Bs.
           </p>
           <p>
             <b>Available:</b>
@@ -39,8 +40,16 @@
             {{ product.selectedAmount }}
           </p>
           <div class="d-flex flex-row-reverse">
-            <button v-if="product.selectedAmount > 0" class="btn btn-danger mx-2">Delete from cart</button>
-            <button class="btn btn-success mx-2">Add to your cart</button>
+            <button
+              v-if="product.selectedAmount > 0"
+              v-on:click="deleteFromCart(index)"
+              class="btn btn-danger mx-2"
+            >Delete from cart</button>
+            <button
+              class="btn btn-success mx-2"
+              v-if="product.quantityAvailable > 0"
+              v-on:click="addToCart(index)"
+            >Add to your cart</button>
           </div>
           <hr>
         </li>
@@ -49,11 +58,23 @@
         <p>
           <b>Total to pay:</b>
           {{ total }}
+          Bs.
         </p>
       </div>
       <div class="d-flex flex-row-reverse">
-        <button class="btn btn-primary p-2">BUY</button>
-        <button class="btn btn-info p-2 mx-2" v-if="quantityProducts > 0">Clean shopping cart</button>
+        <button
+          class="btn btn-primary p-2"
+          v-if="quantityProducts > 0"
+          v-on:click="buyProducts()"
+        >BUY</button>
+        <button
+          class="btn btn-info p-2 mx-2"
+          v-if="quantityProducts > 0"
+          v-on:click="cleanCart()"
+        >Clean shopping cart</button>
+        <div v-if="finishedPurchase" class="alert alert-success mx-auto" role="alert">
+          <b>Thank you for purchasing! :)</b>
+        </div>
       </div>
       <br>
     </div>
@@ -62,40 +83,103 @@
 
 <script>
 export default {
-  name: "Store",
-  data: function() {
+  name: 'Store',
+  data: function () {
     return {
       products: [
         {
-          name: "adfa",
-          image: "6.png",
-          quantityAvailable: 2,
-          description: "sfgsdgsdfg",
-          price: "adfdaf",
-          selectedAmount: 1
+          name: 'OnePlus 5',
+          image: '5.jpg',
+          quantityAvailable: 4,
+          description: 'RAM: 8GB, GPU: Adreno 540, Storage: 64GB',
+          price: 3200,
+          selectedAmount: 0
         },
         {
-          name: "fadsfas",
-          image: "6t.jpg",
+          name: 'OnePlus 6',
+          image: '6.png',
+          quantityAvailable: 7,
+          description: 'RAM: 6GB, GPU: Adreno 630, Storage: 256 GB',
+          price: 4500,
+          selectedAmount: 0
+        },
+        {
+          name: 'OnePlus 6t',
+          image: '6t.jpg',
           quantityAvailable: 1,
-          description: "sfgsdgsdfg",
-          price: "dsfaf",
+          description:
+            'RAM: 8GB, GPU: Adreno 630, Storage: 256 GB UFS 2.1 2-LANE',
+          price: 5900,
           selectedAmount: 0
         }
       ],
-      quantityProducts: 1,
-      total: 0
-    };
+      quantityProducts: 0,
+      total: 0,
+      finishedPurchase: false
+    }
   },
   props: {
     messageWelcome: String
   },
   methods: {
-    getImgUrl(pic) {
-      return require("../assets/" + pic);
+    getImgUrl (pic) {
+      return require('../assets/' + pic)
+    },
+    addToCart (index) {
+      this.addProduct(index)
+      this.addTotal(index)
+      this.increaseProducts()
+    },
+    addProduct (index) {
+      this.products[index].quantityAvailable -= 1
+      this.products[index].selectedAmount += 1
+    },
+    addTotal (index) {
+      this.total += this.products[index].price
+    },
+    increaseProducts () {
+      this.quantityProducts++
+    },
+    decreaseProducts () {
+      this.quantityProducts -= 1
+    },
+    buyProducts () {
+      this.total = 0
+      this.quantityProducts = 0
+      this.finishedPurchase = true
+      this.setSelectedAmount()
+      setTimeout(this.setFinishedPurchase, 3000)
+    },
+    setSelectedAmount () {
+      this.products.forEach(product => {
+        product.selectedAmount = 0
+      })
+    },
+    deleteFromCart (index) {
+      this.decreaseProducts()
+      this.resetTotal(index)
+      this.resetProductData(index)
+    },
+    resetProductData (index) {
+      this.products[index].quantityAvailable += this.products[index].selectedAmount
+      this.products[index].selectedAmount = 0
+    },
+    resetTotal (index) {
+      this.total -= this.products[index].price
+    },
+    setFinishedPurchase () {
+      this.finishedPurchase = false
+    },
+    cleanCart () {
+      this.products.forEach(element => {
+        element.quantityAvailable += element.selectedAmount
+        element.selectedAmount = 0
+      })
+      this.total = 0
+      this.quantityProducts = 0
     }
   }
-};
+}
 </script>
 
 <style scoped>
@@ -107,6 +191,7 @@ h1 {
 }
 .btn-info {
   float: right;
+  height: 70px;
 }
 .btn-primary {
   width: 150px;
@@ -119,5 +204,10 @@ li {
 }
 .image-product {
   float: left;
+}
+.alert {
+  float: left;
+  width: 650px;
+  text-align: center;
 }
 </style>
