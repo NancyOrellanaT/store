@@ -31,7 +31,7 @@
           <p>
             <b>Available:</b>
             {{ product.quantityAvailable }}
-            <span v-if="product.quantityAvailable < 1">
+            <span class="not-available" v-if="product.quantityAvailable < 1">
               <i>(Now not in stock)</i>
             </span>
           </p>
@@ -41,15 +41,15 @@
           </p>
           <div class="d-flex flex-row-reverse">
             <button
-              v-if="product.selectedAmount > 0"
-              v-on:click="deleteFromCart(index)"
-              class="btn btn-danger mx-2"
-            >Delete from cart</button>
-            <button
-              class="btn btn-success mx-2"
+              class="btn btn-success mx-2 add-product"
               v-if="product.quantityAvailable > 0"
               v-on:click="addToCart(index)"
             >Add to your cart</button>
+            <button
+              v-if="product.selectedAmount > 0"
+              v-on:click="deleteFromCart(index)"
+              class="btn btn-danger mx-2 delete-to-cart"
+            >Delete from cart</button>
           </div>
           <hr>
         </li>
@@ -140,8 +140,8 @@ export default {
     increaseProducts () {
       this.quantityProducts++
     },
-    decreaseProducts () {
-      this.quantityProducts -= 1
+    decreaseProducts (index) {
+      this.quantityProducts -= this.products[index].selectedAmount
     },
     buyProducts () {
       this.total = 0
@@ -156,7 +156,7 @@ export default {
       })
     },
     deleteFromCart (index) {
-      this.decreaseProducts()
+      this.decreaseProducts(index)
       this.resetTotal(index)
       this.resetProductData(index)
     },
@@ -165,7 +165,7 @@ export default {
       this.products[index].selectedAmount = 0
     },
     resetTotal (index) {
-      this.total -= this.products[index].price
+      this.total -= this.products[index].price * this.products[index].selectedAmount
     },
     setFinishedPurchase () {
       this.finishedPurchase = false
